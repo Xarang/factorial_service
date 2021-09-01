@@ -21,14 +21,22 @@ namespace aspnetcoreapp
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            service = new FactorialService.Service();
         }
 
         public IConfiguration Configuration { get; }
+        private FactorialService.Service service { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
+        }
+
+        private void onShutdown()
+        {
+            Debug.WriteLine("on shutdown triggered !");
+            service.Terminate();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -45,20 +53,21 @@ namespace aspnetcoreapp
                 app.UseHsts();
             }
 
+            var applicationLifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
+            applicationLifetime.ApplicationStopping.Register(onShutdown);
+
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseRouting();
             app.UseAuthorization();
 
-            FactorialService.Service factorialService = new FactorialService.Service();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapRazorPages();
-
                 endpoints.MapGet("/{n:int}", async context => {
                     int n = Int32.Parse((string)context.Request.RouteValues["n"]);
-                    FactorialService.Service.FactorialResult res = factorialService.getFactorial(n).Task.Result;
+                    FactorialService.Service.FactorialResult res = service.getFactorial(n).Task.Result;
                     //Console.WriteLine(JsonSerializer.Serialize(res));
                     await context.Response.Body.WriteAsync(Encoding.ASCII.GetBytes(res.ToJson()));
                 });

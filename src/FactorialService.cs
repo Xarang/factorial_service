@@ -7,6 +7,11 @@ namespace FactorialService {
     class Service {
 
         static private ComputationCollection computationCollection = new ComputationCollection();
+
+        public void Terminate() {
+            computationCollection.Terminate();
+        }
+
         public struct FactorialResult {
             public uint result;
             public TimeSpan executionTime;
@@ -32,15 +37,12 @@ namespace FactorialService {
             Task.Factory.StartNew(() => {
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
-                Task<uint> newTask = Task<uint>.Factory.StartNew(() => Service.computationCollection.getFactorial(n));
+                Task<uint> newTask = Task<uint>.Factory.StartNew(() => Service.computationCollection.GetFactorial(n));
                 watch.Stop();
                 //TODO: store this task somewhere
                 promise.SetResult(new FactorialResult(newTask.Result, watch.Elapsed));
             });
-
             return promise;
-            
         }
-        
     }
 }
