@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -9,6 +8,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+//debug
+using System.Diagnostics;
 
 using FactorialService;
 
@@ -48,19 +49,18 @@ namespace aspnetcoreapp
             app.UseStaticFiles();
 
             app.UseRouting();
-
             app.UseAuthorization();
-
 
             FactorialService.Service factorialService = new FactorialService.Service();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapRazorPages();
 
-                endpoints.MapGet("/{n:int}", context => {
+                endpoints.MapGet("/{n:int}", async context => {
                     int n = Int32.Parse((string)context.Request.RouteValues["n"]);
-                    Console.WriteLine(factorialService.getFactorial(n));
-                    return Task.CompletedTask;
+                    FactorialService.Service.FactorialResult res = factorialService.getFactorial(n).Task.Result;
+                    //Console.WriteLine(JsonSerializer.Serialize(res));
+                    await context.Response.Body.WriteAsync(Encoding.ASCII.GetBytes(res.ToJson()));
                 });
             });
 
