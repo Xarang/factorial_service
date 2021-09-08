@@ -33,11 +33,6 @@ namespace aspnetcoreapp
             services.AddRazorPages();
         }
 
-        private void onShutdown()
-        {
-            Debug.WriteLine("on shutdown triggered !");
-            service.Terminate();
-        }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -53,8 +48,6 @@ namespace aspnetcoreapp
                 app.UseHsts();
             }
 
-            var applicationLifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
-            applicationLifetime.ApplicationStopping.Register(onShutdown);
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
@@ -65,11 +58,24 @@ namespace aspnetcoreapp
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapRazorPages();
-                endpoints.MapGet("/{n:int}", async context => {
+                endpoints.MapGet("/{n:int}", async context =>
+                {
                     int n = Int32.Parse((string)context.Request.RouteValues["n"]);
                     FactorialService.Service.FactorialResult res = service.getFactorial(n).Task.Result;
                     //Console.WriteLine(JsonSerializer.Serialize(res));
                     await context.Response.Body.WriteAsync(Encoding.ASCII.GetBytes(res.ToJson()));
+                });
+
+                endpoints.MapGet("/values", async context =>
+                {
+                    string values = service.getResults();
+                    await context.Response.Body.WriteAsync(Encoding.ASCII.GetBytes(values));
+                });
+
+                endpoints.MapGet("/save", async context =>
+                {
+                    string res = service.Save();
+                    await context.Response.Body.WriteAsync(Encoding.ASCII.GetBytes(res));
                 });
             });
 

@@ -47,12 +47,7 @@ namespace FactorialService {
             this.queueReader = Task.Factory.StartNew(performComputation);
         }
 
-        public void Terminate() {
-            this.queueReader.Wait();
-            Save();
-        }
-
-        public static string ResultsAsString() {
+        public string ResultsAsString() {
             string str = "";
             foreach (var indexedValue in results.Select((x, index) => new { x, index }))
             {
@@ -63,24 +58,70 @@ namespace FactorialService {
             return str;
         }
 
+        public string ResultsToJson()
+        {
+            string str = "";
+            foreach (var indexedValue in results.Select((x, index) => new { x, index }))
+            {
+                var value = indexedValue.x;
+                var index = indexedValue.index;
+                str += value;
+                str += (index < results.Length - 1)  ? ",\n" : "\n";
+            }
+            return "[\n"
+                + str
+                + "]";
+        }
+
         /*
          * Save result array in a file as a JSON array
          */
-        public async void Save() {
-            Debug.WriteLine($"Outputting following values to result file:");
-            Debug.WriteLine(ResultsAsString());
-            await File.WriteAllTextAsync(resultFilename, JsonSerializer.Serialize(results));
+        public string Save()
+        {
+            //Debug.WriteLine($"Outputting following values to result file:");
+            //Debug.WriteLine(ResultsAsString());
+            try
+            {
+                File.WriteAllTextAsync(resultFilename, ResultsToJson());
+                return "{\n"
+                    + "message: \"Saved values to result file: " + resultFilename + "\",\n"
+                    + "values: " + ResultsToJson() + "\n"
+                    + "}";
+            }
+            catch(Exception E)
+            {
+                return "{\n"
+                    + "\"message\": \"was unable to save file at this location\",\n"
+                    + $"\"filename\": \"{resultFilename}\",\n"
+                    + $"\"error\": {E.ToString()}\"\n"
+                    + "}\n";
+            }
+
         }
 
-        public void Load() {
-            if (!File.Exists(resultFilename)) {
+        public void Load()
+        {
+            if (!File.Exists(resultFilename))
+            {
                 Debug.WriteLine($"Could not find result file '{resultFilename}'. Will resume with empty array");
                 return;
             }
-            string text = File.ReadAllText(resultFilename);
-            results = JsonSerializer.Deserialize<uint[]>(resultFilename);
-            Debug.WriteLine("Loaded following values from result file:");
-            Debug.WriteLine(ResultsAsString());
+            else
+            {
+                Debug.WriteLine($"loading cached values in '{resultFilename}'");
+                string text = File.ReadAllText(resultFilename);
+                try
+                {
+                    results = JsonSerializer.Deserialize<uint[]>(text);
+                    Debug.WriteLine("Loaded following values from result file:");
+                    Debug.WriteLine(ResultsToJson());
+                }
+                catch(Exception e)
+                {
+                    Debug.WriteLine("unable to load cached values");
+                    Debug.WriteLine(e.ToString());
+                }
+            }
         }
 
         public uint GetFactorial(int n) {

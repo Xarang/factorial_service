@@ -8,10 +8,6 @@ namespace FactorialService {
 
         static private ComputationCollection computationCollection = new ComputationCollection();
 
-        public void Terminate() {
-            computationCollection.Terminate();
-        }
-
         public struct FactorialResult {
             public uint result;
             public TimeSpan executionTime;
@@ -43,6 +39,15 @@ namespace FactorialService {
                 promise.SetResult(new FactorialResult(newTask.Result, watch.Elapsed));
             });
             return promise;
+        }
+        public string getResults()
+        {
+            return computationCollection.ResultsToJson();
+        }
+
+        public string Save()
+        {
+            return computationCollection.Save();
         }
     }
 }
