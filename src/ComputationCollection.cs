@@ -29,32 +29,40 @@ namespace FactorialService {
         private static string resultFilename = "results.json";
         private Task queueReader;
 
-        /*
-         * Loop running on the compute queue, checking if a new factorial value has to be computed and performing this computation if needed
-         * to compute fact(n), we use fact(x) with x the highest value for which fact has been computed so far
-         */
-        private static Action performComputation = () => {
-            int n;
-            while (true) {
-                if (computeQueue.TryDequeue(out n)) {
-                    if (results[n] != 0) {
-                        return;
-                    } else {
-                        uint mult = 1;
-                        uint n_decr = (uint)n;
-                        while (n_decr > 0 && results[n_decr] == 0) {
-                            mult *= n_decr;
-                            n_decr--;
-                        }
-                        results[n] = mult * results[n_decr];
-                    }
-                }
-            }
-        };
+        
 
         public ComputationCollection() {
             Load();
-            this.queueReader = Task.Factory.StartNew(performComputation);
+            this.queueReader = Task.Factory.StartNew(() =>
+            {
+                /*
+                 * Loop running on the compute queue, checking if a new factorial value has to be computed
+                 * and performing this computation if needed to compute fact(n), we use fact(x) with x the
+                 * highest value for which fact has been computed so far
+                */
+                int n;
+                while (true)
+                {
+                    if (computeQueue.TryDequeue(out n))
+                    {
+                        if (results[n] != 0)
+                        {
+                            return;
+                        }
+                        else
+                        {
+                            uint mult = 1;
+                            uint n_decr = (uint)n;
+                            while (n_decr > 0 && results[n_decr] == 0)
+                            {
+                                mult *= n_decr;
+                                n_decr--;
+                            }
+                            results[n] = mult * results[n_decr];
+                        }
+                    }
+                }
+            });
         }
 
 
@@ -139,7 +147,7 @@ namespace FactorialService {
          */
         public uint GetFactorial(int n)
         {
-            if  (0 > n || n > 20)
+            if  (0 > n || n >= 20)
             {
                 return 0;
             }

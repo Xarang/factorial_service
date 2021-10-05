@@ -35,7 +35,6 @@ namespace FactorialService {
         public TaskCompletionSource<FactorialDTO> getFactorial(int n) {
 
             var promise = new TaskCompletionSource<FactorialDTO>();
-            //Task<FactorialResult> task = promise.Task;
             Task.Factory.StartNew(() => {
                 
                 //compute execution time
