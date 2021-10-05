@@ -1,5 +1,34 @@
-* a **thread-safe** queue that holds fact compute to be performed. When a client requests a factorial value that has yet to be computed, this value is added to this queue. A task is running on this queue, dequeuing compute requests as they come, performing the compute, and storing the result into the array.
+# factorial_service
 
+The aim of this project is to build a service that computes factorial values when requested by a client, using c# multithreading capabilities to help with performance.
+
+## Communicating with the service
+
+The service itself is a ASP.NET application with the following routes:
+
+```
+GET {{host}}/:int
+0 <= int < 20
+returns fact(int) with this format: { "result": uint, "execution time": TimeSpan }
+```
+
+```
+GET {{host}}/results
+returns a JSON array containing all fact values computed so far (or 0 for values that have yet to be computed once)
+```
+
+
+```
+GET {{host}}/save
+save all computed values in a JSON file that will be loaded on next service boot
+```
+
+
+## Inner Workings
+
+Our service is divided in 2 main collections:
+* a basic array of 20 _uint_ . Above fact(20) the numbers are too big to be represented anyway without bignums (out of scope). This array is **not thread-safe** and will only be **read** by the client (no thread-unsafe write operations).
+* a **thread-safe** queue that holds fact compute to be performed. When a client requests a factorial value that has yet to be computed, this value is added to this queue. A task is running on this queue, dequeuing compute requests as they come, performing the compute, and storing the result into the array.
 
 Most requests will directly access the result array, hence not using a thread-safe collection there is a big efficiency gain. The thread-safe compute queue on the other hand helps making sure there is no concurrent write happening on our array _(I used the postulate that whilst concurrent writes are bad, concurrent reads are ok)_
 
