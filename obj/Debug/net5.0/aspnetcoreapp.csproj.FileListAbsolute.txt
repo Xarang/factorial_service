@@ -79,4 +79,3 @@ C:\Users\Xarang\source\repos\factorial_service\obj\Debug\net5.0\aspnetcoreapp.pd
 C:\Users\Xarang\source\repos\factorial_service\obj\Debug\net5.0\aspnetcoreapp.genruntimeconfig.cache
 C:\Users\Xarang\source\repos\factorial_service\obj\Debug\net5.0\aspnetcoreapp.csproj.CopyComplete
 C:\Users\Xarang\source\repos\factorial_service\obj\Debug\net5.0\Razor\Pages\Form.cshtml.g.cs
-C:\Users\Xarang\source\repos\factorial_service\bin\Debug\net5.0\results.json

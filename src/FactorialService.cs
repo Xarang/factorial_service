@@ -8,6 +8,9 @@ namespace FactorialService {
 
         static private ComputationCollection computationCollection = new ComputationCollection();
 
+        /*
+         *  return format
+         */
         public struct FactorialResult {
             public uint result;
             public TimeSpan executionTime;
@@ -26,17 +29,23 @@ namespace FactorialService {
             }
         }
 
+        /*
+         * Factorial Service called by the client
+         */
         public TaskCompletionSource<FactorialResult> getFactorial(int n) {
 
             var promise = new TaskCompletionSource<FactorialResult>();
             //Task<FactorialResult> task = promise.Task;
             Task.Factory.StartNew(() => {
+                
+                //compute execution time
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
-                Task<uint> newTask = Task<uint>.Factory.StartNew(() => Service.computationCollection.GetFactorial(n));
+
+                uint factorialValue = Service.computationCollection.GetFactorial(n);
+
                 watch.Stop();
-                //TODO: store this task somewhere
-                promise.SetResult(new FactorialResult(newTask.Result, watch.Elapsed));
+                promise.SetResult(new FactorialResult(factorialValue, watch.Elapsed));
             });
             return promise;
         }

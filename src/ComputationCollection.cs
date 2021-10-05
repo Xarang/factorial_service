@@ -16,16 +16,23 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace FactorialService {
+
+    //this class holds 
+
     class ComputationCollection {
+
         private static uint[] results = new uint[20];
         private static ConcurrentQueue<int> computeQueue = new ConcurrentQueue<int>();
         private static string resultFilename = "results.json";
         private Task queueReader;
 
+        /*
+         * Loop running on the compute queue, checking if a new factorial value has to be computed and performing this computation if needed
+         */
         private static Action performComputation = () => {
             results[0] = 1; //TODO: do this only once elsewhere
+            int n;
             while (true) {
-                int n;
                 if (computeQueue.TryDequeue(out n)) {
                     if (results[n] != 0) {
                         return;
@@ -42,22 +49,15 @@ namespace FactorialService {
             }
         };
 
-        public ComputationCollection() { //TODO: optionally take file into input
+        public ComputationCollection() {
             Load();
             this.queueReader = Task.Factory.StartNew(performComputation);
         }
 
-        public string ResultsAsString() {
-            string str = "";
-            foreach (var indexedValue in results.Select((x, index) => new { x, index }))
-            {
-                var value = indexedValue.x;
-                var index = indexedValue.index;
-                str += $"[{index}]: {(value != 0 ? value : '-')}\n";
-            }
-            return str;
-        }
 
+        /*
+         *  Serializes the result collection to a json file (JSON serializer I found in .NET libs would not work)
+         */
         public string ResultsToJson()
         {
             string str = "";
@@ -69,7 +69,7 @@ namespace FactorialService {
                 str += (index < results.Length - 1)  ? ",\n" : "\n";
             }
             return "[\n"
-                + str
+                + "    " + str
                 + "]";
         }
 
@@ -78,8 +78,6 @@ namespace FactorialService {
          */
         public string Save()
         {
-            //Debug.WriteLine($"Outputting following values to result file:");
-            //Debug.WriteLine(ResultsAsString());
             try
             {
                 File.WriteAllTextAsync(resultFilename, ResultsToJson());
@@ -88,7 +86,7 @@ namespace FactorialService {
                     + "values: " + ResultsToJson() + "\n"
                     + "}";
             }
-            catch(Exception E)
+            catch (Exception E)
             {
                 return "{\n"
                     + "\"message\": \"was unable to save file at this location\",\n"
@@ -124,17 +122,27 @@ namespace FactorialService {
             }
         }
 
-        public uint GetFactorial(int n) {
-            if  (0 > n || n > 20) {
+
+        /*
+         * The function the client calls to compute a factorial;
+         * If the value was not computed before, ask the compute queue to compute it before
+         * Otherwise, simply return the result
+         */
+        public uint GetFactorial(int n)
+        {
+            if  (0 > n || n > 20)
+            {
                 return 0;
             }
-            if (results[n] == 0) {
+            if (results[n] == 0)
+            {
                 computeQueue.Enqueue(n);
-                Thread.Sleep(50);
-                return GetFactorial(n);
-            } else {
-                return results[n];
+                while (results[n] == 0)
+                {
+                    Thread.Sleep(50);
+                }
             }
+            return results[n];
         }
 
     }
