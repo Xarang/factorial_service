@@ -65,7 +65,7 @@ namespace aspnetcoreapp
                 endpoints.MapGet("/{n:int}", async context =>
                 {
                     int n = Int32.Parse((string)context.Request.RouteValues["n"]);
-                    FactorialService.Service.FactorialResult res = service.getFactorial(n).Task.Result;
+                    FactorialService.Service.FactorialDTO res = service.getFactorial(n).Task.Result;
                     await context.Response.Body.WriteAsync(Encoding.ASCII.GetBytes(res.ToJson()));
                 });
 

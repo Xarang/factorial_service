@@ -11,10 +11,10 @@ namespace FactorialService {
         /*
          *  return format
          */
-        public struct FactorialResult {
+        public struct FactorialDTO {
             public uint result;
             public TimeSpan executionTime;
-            public FactorialResult(uint result, TimeSpan executionTime) {
+            public FactorialDTO(uint result, TimeSpan executionTime) {
                 this.result = result;
                 this.executionTime = executionTime;
             }
@@ -32,9 +32,9 @@ namespace FactorialService {
         /*
          * Factorial Service called by the client
          */
-        public TaskCompletionSource<FactorialResult> getFactorial(int n) {
+        public TaskCompletionSource<FactorialDTO> getFactorial(int n) {
 
-            var promise = new TaskCompletionSource<FactorialResult>();
+            var promise = new TaskCompletionSource<FactorialDTO>();
             //Task<FactorialResult> task = promise.Task;
             Task.Factory.StartNew(() => {
                 
@@ -45,7 +45,7 @@ namespace FactorialService {
                 uint factorialValue = Service.computationCollection.GetFactorial(n);
 
                 watch.Stop();
-                promise.SetResult(new FactorialResult(factorialValue, watch.Elapsed));
+                promise.SetResult(new FactorialDTO(factorialValue, watch.Elapsed));
             });
             return promise;
         }
