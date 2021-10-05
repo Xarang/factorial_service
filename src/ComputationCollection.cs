@@ -17,8 +17,7 @@ using System.Threading.Tasks;
 
 namespace FactorialService {
 
-    //this class holds 
-
+    //this class holds the collections used for our factorial computation and storage
     class ComputationCollection {
 
         private static uint[] results = new uint[20]
