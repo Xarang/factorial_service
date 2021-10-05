@@ -58,20 +58,29 @@ namespace aspnetcoreapp
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapRazorPages();
+
+                /*
+                 * call factorial service
+                 */
                 endpoints.MapGet("/{n:int}", async context =>
                 {
                     int n = Int32.Parse((string)context.Request.RouteValues["n"]);
                     FactorialService.Service.FactorialResult res = service.getFactorial(n).Task.Result;
-                    //Console.WriteLine(JsonSerializer.Serialize(res));
                     await context.Response.Body.WriteAsync(Encoding.ASCII.GetBytes(res.ToJson()));
                 });
 
+                /*
+                 * print currently stored values
+                 */
                 endpoints.MapGet("/values", async context =>
                 {
                     string values = service.getResults();
                     await context.Response.Body.WriteAsync(Encoding.ASCII.GetBytes(values));
                 });
 
+                /*
+                 * make a backup of computed values into a .json file
+                 */
                 endpoints.MapGet("/save", async context =>
                 {
                     string res = service.Save();

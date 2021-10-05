@@ -21,16 +21,19 @@ namespace FactorialService {
 
     class ComputationCollection {
 
-        private static uint[] results = new uint[20];
+        private static uint[] results = new uint[20]
+        {
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        };
         private static ConcurrentQueue<int> computeQueue = new ConcurrentQueue<int>();
         private static string resultFilename = "results.json";
         private Task queueReader;
 
         /*
          * Loop running on the compute queue, checking if a new factorial value has to be computed and performing this computation if needed
+         * to compute fact(n), we use fact(x) with x the highest value for which fact has been computed so far
          */
         private static Action performComputation = () => {
-            results[0] = 1; //TODO: do this only once elsewhere
             int n;
             while (true) {
                 if (computeQueue.TryDequeue(out n)) {
@@ -56,7 +59,7 @@ namespace FactorialService {
 
 
         /*
-         *  Serializes the result collection to a json file (JSON serializer I found in .NET libs would not work)
+         *  Serializes the result collection to a json file (JSON serializer I found in .NET libs would not work for some reason, did not want to lose time on that)
          */
         public string ResultsToJson()
         {
@@ -65,11 +68,11 @@ namespace FactorialService {
             {
                 var value = indexedValue.x;
                 var index = indexedValue.index;
-                str += value;
+                str += "   " + value;
                 str += (index < results.Length - 1)  ? ",\n" : "\n";
             }
             return "[\n"
-                + "    " + str
+                + str
                 + "]";
         }
 
@@ -80,11 +83,14 @@ namespace FactorialService {
         {
             try
             {
-                File.WriteAllTextAsync(resultFilename, ResultsToJson());
-                return "{\n"
-                    + "message: \"Saved values to result file: " + resultFilename + "\",\n"
-                    + "values: " + ResultsToJson() + "\n"
-                    + "}";
+                lock(results)
+                {
+                    File.WriteAllTextAsync(resultFilename, ResultsToJson());
+                    return "{\n"
+                        + "message: \"Saved values to result file: " + resultFilename + "\",\n"
+                        + "values: " + ResultsToJson() + "\n"
+                        + "}";
+                }
             }
             catch (Exception E)
             {
@@ -97,6 +103,9 @@ namespace FactorialService {
 
         }
 
+        /*
+         * loads previous results from a .json file
+         */
         public void Load()
         {
             if (!File.Exists(resultFilename))
